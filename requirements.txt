@@ -1,6 +1,6 @@
 gradio==3.50.2
 fastapi==0.110
-gradio-client==0.8
+gradio-client==0.6.1
 pypdf2==2.12.1
 httpx<=0.25.2
 zhipuai==2.0.1
