@@ -145,7 +145,7 @@ flowchart TD
 1. 下载项目
 
     ```sh
-    git clone --depth=1 https://github.com/binary-husky/gpt_academic.git
+    git clone --depth=1 https://github.com/wans10/gpt_academic.git
     cd gpt_academic
     ```
 
