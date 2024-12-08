@@ -36,6 +36,7 @@ from shared_utils.handle_upload import html_local_file
 from shared_utils.handle_upload import html_local_img
 from shared_utils.handle_upload import file_manifest_filter_type
 from shared_utils.handle_upload import extract_archive
+from shared_utils.auth_loader import get_api_key_by_username
 from typing import List
 pj = os.path.join
 default_user_name = "default_user"
@@ -85,11 +86,6 @@ class ChatBotWithCookies(list):
         return self._cookies.get("user_name", default_user_name)
 
 def ArgsGeneralWrapper(f):
-    """
-    装饰器函数ArgsGeneralWrapper，用于重组输入参数，改变输入参数的顺序与结构。
-    该装饰器是大多数功能调用的入口。
-    函数示意图：https://mermaid.live/edit#pako:eNqNVFtPGkEY_StkntoEDQtLoTw0sWqapjQxVWPabmOm7AiEZZcsQ9QiiW012qixqdeqqIn10geBh6ZR8PJnmAWe-hc6l3VhrWnLEzNzzvnO953ZyYOYoSIQAWOaMR5LQBN7hvoU3UN_g5iu7imAXEyT4wUF3Pd0dT3y9KGYYUJsmK8V0GPGs0-QjkyojZgwk0Fm82C2dVghX08U8EaoOHjOfoEMU0XmADRhOksVWnNLjdpM82qFzB6S5Q_WWsUhuqCc3JtAsVR_OoMnhyZwXgHWwbS1d4gnsLVZJp-P6mfVxveqAgqC70Jz_pQCOGDKM5xFdNNPDdilF6uSU_hOYqu4a3MHYDZLDzq5fodrC3PWcEaFGPUaRiqJWK_W9g9rvRITa4dhy_0nw67SiePMp3oSR6PPn41DGgllkvkizYwsrmtaejTFd8V4yekGmT1zqrt4XGlAy8WTuiPULF01LksZvukSajfQQRAxmYi5S0D81sDcyzapVdn6sYFHkjhhGyel3frVQnvsnbR23lEjlhIlaOJiFPWzU5G4tfNJo8ejwp47-TbvJkKKZvmxA6SKo16oaazJysfG6klr9T0pbTW2ZqzlL_XaT8fYbQLXe4mSmvoCZXMaa7FePW6s7jVqK9bujvse3WFjY5_Z4KfsA4oiPY4T7Drvn1tLJTbG1to1qR79ulgk89-oJbvZzbIwJty6u20LOReWa9BvwserUd9s9MIKc3x5TUWEoAhUyJK5y85w_yG-dFu_R9waoU7K581y8W_qLle35-rG9Nxcrz8QHRsc0K-r9NViYRT36KsFvCCNzDRMqvSVyzOKAnACpZECIvSvCs2UAhS9QHEwh43BST0GItjMIS_I8e-sLwnj9A262cxA_ZVh0OUY1LJiDSJ5MAEiUijYLUtBORR6KElyQPaCSRDpksNSd8AfluSgHPaFC17wjrOlbgbzyyFf4IFPDvoD_sJvnkdK-g
-    """
     def decorated(request: gradio.Request, cookies:dict, max_length:int, llm_model:str,
                   txt:str, txt2:str, top_p:float, temperature:float, chatbot:list,
                   history:list, system_prompt:str, plugin_advanced_arg:dict, *args):
@@ -100,17 +96,23 @@ def ArgsGeneralWrapper(f):
             user_name = request.username
         else:
             user_name = default_user_name
+        # 从数据库获取 API 密钥
+        api_key = get_api_key_by_username(user_name)
+        if api_key is None:
+            # 如果没有获取到 API 密钥，可以使用默认的 cookies 中的 API 密钥
+            api_key = cookies.get('api_key')
+
         embed_model = get_conf("EMBEDDING_MODEL")
         cookies.update({
             'top_p': top_p,
-            'api_key': cookies['api_key'],
+            'api_key': api_key,  # 使用从数据库获取的 API 密钥
             'llm_model': llm_model,
             'embed_model': embed_model,
             'temperature': temperature,
             'user_name': user_name,
         })
         llm_kwargs = {
-            'api_key': cookies['api_key'],
+            'api_key': api_key,  # 同样使用从数据库获取的 API 密钥
             'llm_model': llm_model,
             'embed_model': embed_model,
             'top_p': top_p,
@@ -161,10 +163,10 @@ def update_ui(chatbot:ChatBotWithCookies, history, msg="正常", **kwargs):  # �
     # 解决插件锁定时的界面显示问题
     if cookies.get("lock_plugin", None):
         label = (
-            cookies.get("llm_model", "")
-            + " | "
-            + "正在锁定插件"
-            + cookies.get("lock_plugin", None)
+                cookies.get("llm_model", "")
+                + " | "
+                + "正在锁定插件"
+                + cookies.get("lock_plugin", None)
         )
         chatbot_gr = gradio.update(value=chatbot, label=label)
         if cookies.get("label", "") != label:
@@ -301,7 +303,7 @@ def get_reduce_token_percent(text:str):
 
 
 def write_history_to_file(
-    history:list, file_basename:str=None, file_fullname:str=None, auto_caption:bool=True
+        history:list, file_basename:str=None, file_fullname:str=None, auto_caption:bool=True
 ):
     """
     将对话记录history以Markdown格式写入文件中。如果没有指定文件名，则使用当前时间生成文件名。
@@ -496,8 +498,8 @@ def to_markdown_tabs(head: list, tabs: list, alignment=":---:", column=False, om
 
 
 def on_file_uploaded(
-    request: gradio.Request, files:List[str], chatbot:ChatBotWithCookies,
-    txt:str, txt2:str, checkboxes:List[str], cookies:dict
+        request: gradio.Request, files:List[str], chatbot:ChatBotWithCookies,
+        txt:str, txt2:str, checkboxes:List[str], cookies:dict
 ):
     """
     当文件被上传时的回调函数
@@ -541,7 +543,7 @@ def on_file_uploaded(
             f"\n\n调用路径参数已自动修正到: \n\n{txt}" +
             f"\n\n现在您点击任意函数插件时，以上文件将被作为输入参数" +
             upload_msg,
-        ]
+            ]
     )
 
     txt, txt2 = target_path_base, ""
@@ -760,8 +762,8 @@ def clip_history(inputs, history, tokenizer, max_token_limit):
         encoded = tokenizer.encode(everything[where], disallowed_special=())
         clipped_encoded = encoded[: len(encoded) - delta]
         everything[where] = tokenizer.decode(clipped_encoded)[
-            :-1
-        ]  # -1 to remove the may-be illegal char
+                            :-1
+                            ]  # -1 to remove the may-be illegal char
         everything_token[where] = get_token_num(everything[where])
         n_token = get_token_num("\n".join(everything))
 
@@ -1036,17 +1038,17 @@ def log_chat(llm_model: str, input_str: str, output_str: str):
             input_str = input_str.rstrip('\n')
             output_str = output_str.rstrip('\n')
             logger.bind(chat_msg=True).info(dedent(
-            """
-            ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-            [UID]
-            {uid}
-            [Model]
-            {llm_model}
-            [Query]
-            {input_str}
-            [Response]
-            {output_str}
-            ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-            """).format(uid=uid, llm_model=llm_model, input_str=input_str, output_str=output_str))
+                """
+                ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+                [UID]
+                {uid}
+                [Model]
+                {llm_model}
+                [Query]
+                {input_str}
+                [Response]
+                {output_str}
+                ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+                """).format(uid=uid, llm_model=llm_model, input_str=input_str, output_str=output_str))
     except:
         logger.error(trimmed_format_exc())
