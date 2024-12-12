@@ -4,10 +4,10 @@ from mysql.connector import Error
 
 # MySQL 数据库连接配置
 db_config = {
-    'host': '34.146.163.169',  # 替换为你的数据库地址
-    'user': 'oneapi_XZH6Zi',   # 替换为你的数据库用户名
-    'password': 'oneapi_4AMN4Y',  # 替换为你的数据库密码
-    'database': 'oneapi_nzfhah'
+    'host': '34.28.125.209',  # 替换为你的数据库地址
+    'user': 'oneapi_WQhycE',   # 替换为你的数据库用户名
+    'password': 'oneapi_CshfMw',  # 替换为你的数据库密码
+    'database': 'oneapi_w2e4cm'
 }
 
 # 数据库连接上下文管理器
