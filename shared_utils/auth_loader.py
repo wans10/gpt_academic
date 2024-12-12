@@ -1,23 +1,28 @@
+import os
 import mysql.connector
 import bcrypt
 from mysql.connector import Error
 
-# MySQL 数据库连接配置
+# 从环境变量读取数据库配置，提升安全性
 db_config = {
-    'host': '34.28.125.209',  # 替换为你的数据库地址
-    'user': 'oneapi_WQhycE',   # 替换为你的数据库用户名
-    'password': 'oneapi_CshfMw',  # 替换为你的数据库密码
-    'database': 'oneapi_w2e4cm'
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'user': os.getenv('DB_USER', 'root'),
+    'password': os.getenv('DB_PASSWORD', ''),
+    'database': os.getenv('DB_NAME', 'test')
 }
 
 # 数据库连接上下文管理器
 class DatabaseConnection:
     def __enter__(self):
-        self.connection = mysql.connector.connect(**db_config)
-        return self.connection
+        try:
+            self.connection = mysql.connector.connect(**db_config)
+            return self.connection
+        except Error as e:
+            print(f"Database connection error: {e}")
+            return None
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.connection.is_connected():
+        if self.connection and self.connection.is_connected():
             self.connection.close()
 
 # 验证用户密码
@@ -25,13 +30,23 @@ def authenticate_user(username, password):
     query = "SELECT password FROM users WHERE username = %s"
 
     with DatabaseConnection() as connection:
+        if connection is None:
+            return False  # 数据库连接失败
+
         try:
             with connection.cursor(dictionary=True) as cursor:
                 cursor.execute(query, (username,))
                 user = cursor.fetchone()
 
-                if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
-                    return True
+                if user and user['password']:
+                    # 验证密码
+                    stored_password = user['password'].encode('utf-8')
+                    if bcrypt.checkpw(password.encode('utf-8'), stored_password):
+                        return True
+                    else:
+                        print("Password does not match.")
+                else:
+                    print("User not found or password is empty.")
         except Error as e:
             print(f"Database error during authentication: {e}")
 
@@ -43,6 +58,9 @@ def get_api_key_by_username(username):
     token_query = "SELECT `key` FROM tokens WHERE user_id = %s AND status = 1"
 
     with DatabaseConnection() as connection:
+        if connection is None:
+            return None  # 数据库连接失败
+
         try:
             with connection.cursor(dictionary=True) as cursor:
                 # 获取用户 ID
@@ -56,6 +74,10 @@ def get_api_key_by_username(username):
 
                     if token and token.get('key'):
                         return f"sk-{token['key']}"
+                    else:
+                        print("Token not found or invalid.")
+                else:
+                    print("User not found or inactive.")
         except Error as e:
             print(f"Database error while retrieving API key: {e}")
 
