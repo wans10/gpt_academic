@@ -36,6 +36,7 @@ from shared_utils.handle_upload import html_local_file
 from shared_utils.handle_upload import html_local_img
 from shared_utils.handle_upload import file_manifest_filter_type
 from shared_utils.handle_upload import extract_archive
+from shared_utils.auth_loader import get_api_key_by_username
 from typing import List
 pj = os.path.join
 default_user_name = "default_user"
@@ -100,17 +101,23 @@ def ArgsGeneralWrapper(f):
             user_name = request.username
         else:
             user_name = default_user_name
+        # 从数据库获取 API 密钥
+        api_key = get_api_key_by_username(user_name)
+        if api_key is None:
+            # 如果没有获取到 API 密钥，可以使用默认的 cookies 中的 API 密钥
+            api_key = cookies.get('api_key')
+
         embed_model = get_conf("EMBEDDING_MODEL")
         cookies.update({
             'top_p': top_p,
-            'api_key': cookies['api_key'],
+            'api_key': api_key,  # 使用从数据库获取的 API 密钥
             'llm_model': llm_model,
             'embed_model': embed_model,
             'temperature': temperature,
             'user_name': user_name,
         })
         llm_kwargs = {
-            'api_key': cookies['api_key'],
+            'api_key': api_key,  # 同样使用从数据库获取的 API 密钥
             'llm_model': llm_model,
             'embed_model': embed_model,
             'top_p': top_p,
