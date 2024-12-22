@@ -13,6 +13,8 @@ import uuid
 from loguru import logger
 from functools import wraps
 from textwrap import dedent
+
+from shared_utils.auth_loader import get_api_key_by_username
 from shared_utils.config_loader import get_conf
 from shared_utils.config_loader import set_conf
 from shared_utils.config_loader import set_multi_conf
@@ -103,16 +105,20 @@ def ArgsGeneralWrapper(f):
         else:
             user_name = default_user_name
         embed_model = get_conf("EMBEDDING_MODEL")
+
+        # 使用 get_api_key_by_username 获取 API 密钥
+        api_key = get_api_key_by_username(user_name)
+
         cookies.update({
             'top_p': top_p,
-            'api_key': cookies['api_key'],
+            'api_key': api_key if api_key else cookies.get('api_key'),  # 如果获取到 api_key，使用它；否则保持原有的 api_key
             'llm_model': llm_model,
             'embed_model': embed_model,
             'temperature': temperature,
             'user_name': user_name,
         })
         llm_kwargs = {
-            'api_key': cookies['api_key'],
+            'api_key': api_key if api_key else cookies.get('api_key'),
             'llm_model': llm_model,
             'embed_model': embed_model,
             'top_p': top_p,
