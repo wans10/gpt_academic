@@ -19,7 +19,7 @@ db_config = {
     'host': '34.28.125.209',
     'user': 'oneapi_rt4zZA',
     'password': 'oneapi_ji5Zpm',
-    'database': 'oneapi_fm6c2f-api',
+    'database': 'oneapi_fm6c2f',
     'auth_plugin': 'mysql_native_password',
     'connection_timeout': 5
 }
