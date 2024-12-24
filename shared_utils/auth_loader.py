@@ -16,10 +16,10 @@ logger.add(
 
 # 数据库配置
 db_config = {
-    'host': '34.85.18.103',
-    'user': 'llmhub',
-    'password': 'TVPxR1T]33mIHi7foo_y',
-    'database': 'new-api',
+    'host': '34.28.125.209',
+    'user': 'oneapi_rt4zZA',
+    'password': 'oneapi_ji5Zpm',
+    'database': 'oneapi_fm6c2f-api',
     'auth_plugin': 'mysql_native_password',
     'connection_timeout': 5
 }
