@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any
 
 # 配置日志
 logger.add(
-    "/app/logs/app.log",
+    "app.log",
     level="DEBUG",
     rotation="1 MB",
     format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
