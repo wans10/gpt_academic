@@ -1,9 +1,10 @@
-import os
 import mysql.connector
 from loguru import logger
 import bcrypt
 from mysql.connector import Error, pooling
 from typing import Optional, Dict, Any
+import time
+from contextlib import contextmanager
 
 # 配置日志
 logger.add(
@@ -15,33 +16,19 @@ logger.add(
 
 # 数据库配置
 db_config = {
-    'host': os.environ.get('DB_HOST', 'localhost'),     # 添加默认值
-    'user': os.environ.get('DB_USER', 'root'),         # 添加默认值
-    'password': os.environ.get('DB_PASSWORD', ''),     # 添加默认值
-    'database': os.environ.get('DB_NAME', 'oneapi'),   # 添加默认值
-    'auth_plugin': os.environ.get('DB_AUTH_PLUGIN', 'mysql_native_password'),
-    'connection_timeout': int(os.environ.get('DB_TIMEOUT', '5'))
+    'host': '34.28.125.209',
+    'user': 'oneapi_4AKF6K',
+    'password': 'oneapi_tyhzBB',
+    'database': 'oneapi_2jza2a',
+    'auth_plugin': 'mysql_native_password',
+    'connection_timeout': 5
 }
-
-# 检查是否需要创建连接池
-def init_db_pool():
-    global db_pool
-    if not os.environ.get('SKIP_DB_POOL', False):
-        try:
-            db_pool = pooling.MySQLConnectionPool(
-                pool_name="mypool",
-                pool_size=int(os.environ.get('DB_POOL_SIZE', '10')),
-                **db_config
-            )
-        except Error as e:
-            print(f"Warning: Could not create database pool: {e}")
-            db_pool = None
 
 # 创建数据库连接池
 try:
     db_pool = pooling.MySQLConnectionPool(
         pool_name="mypool",
-        pool_size=int(os.environ.get('DB_POOL_SIZE', '10')),
+        pool_size=10,
         **db_config
     )
     logger.info("Database connection pool created successfully")
