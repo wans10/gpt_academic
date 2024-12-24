@@ -15,13 +15,27 @@ logger.add(
 
 # 数据库配置
 db_config = {
-    'host': os.environ['DB_HOST'],
-    'user': os.environ['DB_USER'],
-    'password': os.environ['DB_PASSWORD'],
-    'database': os.environ['DB_NAME'],
+    'host': os.environ.get('DB_HOST', 'localhost'),     # 添加默认值
+    'user': os.environ.get('DB_USER', 'root'),         # 添加默认值
+    'password': os.environ.get('DB_PASSWORD', ''),     # 添加默认值
+    'database': os.environ.get('DB_NAME', 'oneapi'),   # 添加默认值
     'auth_plugin': os.environ.get('DB_AUTH_PLUGIN', 'mysql_native_password'),
     'connection_timeout': int(os.environ.get('DB_TIMEOUT', '5'))
 }
+
+# 检查是否需要创建连接池
+def init_db_pool():
+    global db_pool
+    if not os.environ.get('SKIP_DB_POOL', False):
+        try:
+            db_pool = pooling.MySQLConnectionPool(
+                pool_name="mypool",
+                pool_size=int(os.environ.get('DB_POOL_SIZE', '10')),
+                **db_config
+            )
+        except Error as e:
+            print(f"Warning: Could not create database pool: {e}")
+            db_pool = None
 
 # 创建数据库连接池
 try:
