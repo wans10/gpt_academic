@@ -1,3 +1,4 @@
+import os
 import mysql.connector
 from loguru import logger
 import bcrypt
@@ -14,14 +15,14 @@ logger.add(
     format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
 )
 
-# 数据库配置
+# 数据库配置从环境变量读取
 db_config = {
-    'host': '34.85.18.103',
-    'user': 'llmhub',
-    'password': 'QmX2RNJEK6DJ82rF',
-    'database': 'new-api',
-    'auth_plugin': 'mysql_native_password',
-    'connection_timeout': 5
+    'host': os.environ['DB_HOST'],
+    'user': os.environ['DB_USER'],
+    'password': os.environ['DB_PASSWORD'],
+    'database': os.environ['DB_NAME'],
+    'auth_plugin': os.environ.get('DB_AUTH_PLUGIN', 'mysql_native_password'),
+    'connection_timeout': int(os.environ.get('DB_TIMEOUT', 5))
 }
 
 # 创建数据库连接池
