@@ -33,7 +33,7 @@ RUN pip3 install -r requirements.txt
 
 
 # 非必要步骤，用于预热模块（可以删除）
-RUN python3  -c 'from check_proxy import warm_up_modules; warm_up_modules()'
+# RUN python3  -c 'from check_proxy import warm_up_modules; warm_up_modules()'
 RUN python3 -m pip cache purge
 
 
