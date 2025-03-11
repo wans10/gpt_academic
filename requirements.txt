@@ -1,4 +1,7 @@
 https://public.agent-matrix.com/publish/gradio-3.32.13-py3-none-any.whl
+mysql-connector-python
+bcrypt
+python-dotenv
 fastapi==0.110
 gradio-client==0.8
 pypdf2==2.12.1

@@ -6,6 +6,7 @@
     and the environment variable configuration format can be seen in docker-compose.yml.
     Configuration reading priority: environment variable > config_private.py > config.py
 """
+from shared_utils.auth_loader import authenticate_user
 
 # [step 1-1]>> ( 接入GPT等模型 ) API_KEY = "sk-123456789xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123456789"。极少数情况下，还需要填写组织（格式如org-123456789abcdefghijklmno的），请向下翻，找 API_ORG 设置项
 API_KEY = "在此处填写APIKEY"    # 可同时填写多个API-KEY，用英文逗号分割，例如API_KEY = "sk-openaikey1,sk-openaikey2,fkxxxx-api2dkey3,azure-apikey4"
@@ -133,7 +134,7 @@ LAYOUT = "LEFT-RIGHT"   # "LEFT-RIGHT"（左右布局） # "TOP-DOWN"（上下�
 
 
 # 暗色模式 / 亮色模式
-DARK_MODE = True
+DARK_MODE = False
 
 
 # 发送请求到OpenAI后，等待多久判定为超时
@@ -141,7 +142,7 @@ TIMEOUT_SECONDS = 30
 
 
 # 网页的端口, -1代表随机端口
-WEB_PORT = -1
+WEB_PORT = 22303
 
 
 # 是否自动打开浏览器页面
@@ -189,7 +190,7 @@ CONCURRENT_COUNT = 100
 
 
 # 是否在提交时自动清空输入框
-AUTO_CLEAR_TXT = False
+AUTO_CLEAR_TXT = True
 
 
 # 加一个live2d装饰
@@ -198,7 +199,7 @@ ADD_WAIFU = False
 
 # 设置用户名和密码（不需要修改）（相关功能不稳定，与gradio版本和网络都相关，如果本地使用不建议加这个）
 # [("username", "password"), ("username2", "password2"), ...]
-AUTHENTICATION = []
+AUTHENTICATION = authenticate_user
 
 
 # 如果需要在二级路径下运行（常规情况下，不要修改!!）
